@@ -35,7 +35,7 @@ async function saveSettings() { settingsDraft.value.maxTrades = Math.max(1, Numb
       <label>策略名称<input v-model="draft.name" /></label>
       <div class="rule-editor"><div class="subheading"><h3>入场规则</h3><button class="text-button" @click="addRule('entryRules')">+ 添加</button></div><div v-for="(rule, index) in draft.entryRules" :key="`entry-${index}`" class="rule-edit-row"><span>{{ index + 1 }}</span><input v-model="draft.entryRules[index]" /><button title="上移" @click="moveRule('entryRules', index, -1)">↑</button><button title="下移" @click="moveRule('entryRules', index, 1)">↓</button><button title="删除" @click="removeRule('entryRules', index)">×</button></div></div>
       <div class="rule-editor"><div class="subheading"><h3>出场规则</h3><button class="text-button" @click="addRule('exitRules')">+ 添加</button></div><div v-for="(rule, index) in draft.exitRules" :key="`exit-${index}`" class="rule-edit-row"><span>{{ index + 1 }}</span><input v-model="draft.exitRules[index]" /><button title="上移" @click="moveRule('exitRules', index, -1)">↑</button><button title="下移" @click="moveRule('exitRules', index, 1)">↓</button><button title="删除" @click="removeRule('exitRules', index)">×</button></div></div>
-      <div class="button-row"><button class="primary" @click="saveStrategy">保存策略</button><button class="danger-button" :disabled="store.data.strategies.length <= 1" @click="removeStrategy">删除策略</button><span class="saved-message">{{ saved }}</span></div>
+      <div class="button-row"><button class="primary" @click="saveStrategy">保存策略</button><button class="danger-button" :disabled="store.data.strategies.length <= 1" @click="removeStrategy()">删除策略</button><span class="saved-message">{{ saved }}</span></div>
     </section>
   </section>
 

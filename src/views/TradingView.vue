@@ -41,16 +41,24 @@ async function start() {
   if (!strategy.value) { error.value = '请先在策略管理中创建并启用一套策略。'; return }
   if (needsException.value && !exceptionReason.value.trim()) { error.value = '当前交易属于例外交易，请填写原因。'; return }
   error.value = ''
-  await store.startTrade({ strategy: strategy.value, direction: direction.value, checkedEntry: checkedEntry.value, isException: needsException.value, exceptionReason: exceptionReason.value.trim() || undefined })
-  checkedEntry.value = []
-  exceptionReason.value = ''
+  try {
+    await store.startTrade({ strategy: strategy.value, direction: direction.value, checkedEntry: checkedEntry.value, isException: needsException.value, exceptionReason: exceptionReason.value.trim() || undefined })
+    checkedEntry.value = []
+    exceptionReason.value = ''
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '入场登记失败，请重试。'
+  }
 }
 
 async function close() {
   if (closePnl.value === null || Number.isNaN(closePnl.value)) { error.value = '请填写本笔交易的美元盈亏。'; return }
   error.value = ''
-  await store.closeTrade({ checkedExit: checkedExit.value, pnl: closePnl.value, note: closeNote.value.trim() || undefined })
-  checkedExit.value = []; closePnl.value = null; closeNote.value = ''
+  try {
+    await store.closeTrade({ checkedExit: checkedExit.value, pnl: closePnl.value, note: closeNote.value.trim() || undefined })
+    checkedExit.value = []; closePnl.value = null; closeNote.value = ''
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '平仓保存失败，请重试。'
+  }
 }
 
 function formatPnl(value: number) { return `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}` }
