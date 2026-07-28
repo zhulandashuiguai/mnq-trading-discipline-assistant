@@ -1,0 +1,6 @@
+node_modules/
+dist/
+release/
+release-exe/
+MNQ-交易纪律助手/
+*.log
