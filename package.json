@@ -8,10 +8,12 @@
     "dev": "cross-env VITE_DEV_SERVER_URL=http://localhost:5173 concurrently -k \"vite --host 0.0.0.0\" \"wait-on http://localhost:5173 && electron .\"",
     "dev:web": "vite --host 0.0.0.0",
     "build": "vite build",
+    "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
     "dist:win": "npm run build && electron-builder --win portable"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.9",
     "@vitejs/plugin-vue": "latest",
     "lucide-vue-next": "^0.577.0",
     "pinia": "latest",
@@ -23,9 +25,10 @@
     "cross-env": "latest",
     "electron": "latest",
     "electron-builder": "latest",
-    "typescript": "latest",
+    "typescript": "^5.9.3",
     "vite": "latest",
     "vitest": "latest",
+    "vue-tsc": "^3.3.8",
     "wait-on": "latest"
   },
   "build": {

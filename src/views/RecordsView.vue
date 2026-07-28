@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTradingStore } from '../stores/trading'
 import { nyParts } from '../utils/trading'
 
@@ -12,6 +12,7 @@ const closed = computed(() => records.value.filter((trade) => trade.status === '
 const totalPnl = computed(() => closed.value.reduce((total, trade) => total + (trade.pnl || 0), 0))
 const planTrades = computed(() => records.value.filter((trade) => !trade.isException).length)
 function selectDate() { note.value = store.data.dailyNotes[date.value] || ''; noteSaveState.value = 'idle' }
+watch(() => store.data.dailyNotes[date.value], (value) => { if (noteSaveState.value !== 'saving') note.value = value || '' })
 function displayTime(value?: string) { return value ? new Intl.DateTimeFormat('zh-CN', { timeZone: store.data.settings.displayTimezone, hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—' }
 function formatPnl(value?: number) { if (value === undefined) return '未平仓'; return `${value >= 0 ? '+' : '-'}$${Math.abs(value).toFixed(2)}` }
 async function saveNote() {

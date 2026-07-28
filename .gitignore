@@ -4,3 +4,4 @@ release/
 release-exe/
 MNQ-交易纪律助手/
 *.log
+.env.local
