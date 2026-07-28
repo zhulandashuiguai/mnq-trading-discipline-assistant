@@ -1,0 +1,19 @@
+{
+  "name": "MNQ 交易纪律助手",
+  "short_name": "MNQ 纪律助手",
+  "description": "MNQ / QQQ 日内交易入场与出场条件清单",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7f8",
+  "theme_color": "#10252b",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
