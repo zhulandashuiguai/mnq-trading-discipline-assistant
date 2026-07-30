@@ -21,7 +21,11 @@ const strategy = computed<Strategy | undefined>(() => strategies.value.find((ite
 const status = computed(() => getPreTradeStatus(store.data.trades, store.data.settings, new Date(clock.value)))
 const allEntryChecked = computed(() => !!strategy.value && strategy.value.entryRules.every((rule) => checkedEntry.value.includes(rule)))
 const needsException = computed(() => status.value.blockedReasons.length > 0 || !allEntryChecked.value)
-const displayNow = computed(() => getTimeParts(new Date(clock.value), store.data.settings.displayTimezone))
+const unfollowedRules = computed(() => [
+  ...(strategy.value?.entryRules.filter((rule) => !checkedEntry.value.includes(rule)).map((rule) => `入场规则：${rule}`) || []),
+  ...status.value.blockedReasons.map((reason) => `交易前状态：${reason}`)
+])
+const displayNow = computed(() => getTimeParts(new Date(clock.value), store.data.settings.displayTimezone, true))
 const displayTimezoneLabel = computed(() => store.data.settings.displayTimezone === 'Asia/Shanghai' ? '北京时间' : '纽约时间')
 
 watch(strategies, (items) => {
@@ -31,7 +35,7 @@ watch(strategies, (items) => {
   }
 }, { immediate: true })
 
-onMounted(() => { timer = window.setInterval(() => { clock.value = Date.now() }, 30000) })
+onMounted(() => { timer = window.setInterval(() => { clock.value = Date.now() }, 1000) })
 onBeforeUnmount(() => window.clearInterval(timer))
 
 function resetEntry() { checkedEntry.value = []; exceptionReason.value = ''; error.value = '' }
@@ -42,7 +46,7 @@ async function start() {
   if (needsException.value && !exceptionReason.value.trim()) { error.value = '当前交易属于例外交易，请填写原因。'; return }
   error.value = ''
   try {
-    await store.startTrade({ strategy: strategy.value, direction: direction.value, checkedEntry: checkedEntry.value, isException: needsException.value, exceptionReason: exceptionReason.value.trim() || undefined })
+    await store.startTrade({ strategy: strategy.value, direction: direction.value, checkedEntry: checkedEntry.value, isException: needsException.value, unfollowedRules: unfollowedRules.value, exceptionReason: exceptionReason.value.trim() || undefined })
     checkedEntry.value = []
     exceptionReason.value = ''
   } catch (reason) {
@@ -54,7 +58,7 @@ async function close() {
   if (closePnl.value === null || Number.isNaN(closePnl.value)) { error.value = '请填写本笔交易的美元盈亏。'; return }
   error.value = ''
   try {
-    await store.closeTrade({ checkedExit: checkedExit.value, pnl: closePnl.value, note: closeNote.value.trim() || undefined })
+    await store.closeTrade({ checkedExit: checkedExit.value, unfollowedExitRules: store.openTrade?.exitRules.filter((rule) => !checkedExit.value.includes(rule)).map((rule) => `出场规则：${rule}`), pnl: closePnl.value, note: closeNote.value.trim() || undefined })
     checkedExit.value = []; closePnl.value = null; closeNote.value = ''
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : '平仓保存失败，请重试。'
@@ -77,9 +81,9 @@ function formatDisplayTime(value: string) { return new Intl.DateTimeFormat('zh-C
     <div class="panel wide-panel">
       <div class="section-heading"><div><p class="eyebrow">第一步</p><h2>交易前状态</h2></div><span :class="status.blockedReasons.length ? 'status blocked' : 'status ready'">{{ status.blockedReasons.length ? '需要例外登记' : '允许按计划交易' }}</span></div>
       <div class="check-statuses">
-        <div :class="status.inSession ? 'pass' : 'fail'">交易时段：{{ status.inSession ? '符合' : '不符合' }}</div>
         <div :class="status.tradeCount < store.data.settings.maxTrades ? 'pass' : 'fail'">次数限制：{{ status.tradeCount }}/{{ store.data.settings.maxTrades }}</div>
-        <div :class="status.realizedPnl > -store.data.settings.maxLoss ? 'pass' : 'fail'">日内盈亏：{{ formatPnl(status.realizedPnl) }}</div>
+        <div :class="status.realizedPnl >= store.data.settings.targetProfit ? 'pass' : ''">日目标盈利：{{ formatPnl(status.realizedPnl) }} / +${{ store.data.settings.targetProfit.toFixed(2) }}{{ status.realizedPnl >= store.data.settings.targetProfit ? '（已达成）' : '' }}</div>
+        <div :class="status.realizedPnl > -store.data.settings.maxLoss ? 'pass' : 'fail'">日最大亏损：-${{ store.data.settings.maxLoss.toFixed(2) }} / {{ formatPnl(status.realizedPnl) }}</div>
         <div :class="status.consecutiveLosses < store.data.settings.maxConsecutiveLosses ? 'pass' : 'fail'">连续亏损：{{ status.consecutiveLosses }} 笔</div>
       </div>
       <p v-if="status.blockedReasons.length" class="warning">{{ status.blockedReasons.join('；') }}。继续交易将标记为例外。</p>

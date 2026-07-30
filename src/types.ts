@@ -12,8 +12,8 @@ export interface Strategy {
 
 export interface Settings {
   displayTimezone: DisplayTimezone
-  sessions: { start: string; end: string }[]
   maxTrades: number
+  targetProfit: number
   maxLoss: number
   maxConsecutiveLosses: number
 }
@@ -28,11 +28,13 @@ export interface Trade {
   exitRules: string[]
   checkedEntry: string[]
   checkedExit: string[]
+  unfollowedExitRules?: string[]
   enteredAt: string
   exitedAt?: string
   status: TradeStatus
   pnl?: number
   isException: boolean
+  unfollowedRules?: string[]
   exceptionReason?: string
   note?: string
 }
@@ -46,7 +48,6 @@ export interface AppData {
 
 export interface PreTradeStatus {
   tradingDate: string
-  inSession: boolean
   tradeCount: number
   realizedPnl: number
   consecutiveLosses: number
