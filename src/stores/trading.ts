@@ -215,22 +215,22 @@ export const useTradingStore = defineStore('trading', () => {
     await saveLocalData(data.value)
   }
 
-  async function startTrade(input: { strategy: Strategy; direction: Direction; checkedEntry: string[]; isException: boolean; exceptionReason?: string }) {
+  async function startTrade(input: { strategy: Strategy; direction: Direction; checkedEntry: string[]; isException: boolean; unfollowedRules?: string[]; exceptionReason?: string }) {
     const now = new Date()
     const trade: Trade = {
       id: createId(), tradingDate: nyParts(now).date, direction: input.direction, strategyId: input.strategy.id, strategyName: input.strategy.name,
       entryRules: [...input.strategy.entryRules], exitRules: [...input.strategy.exitRules], checkedEntry: [...input.checkedEntry], checkedExit: [],
-      enteredAt: now.toISOString(), status: 'open', isException: input.isException, exceptionReason: input.exceptionReason
+      enteredAt: now.toISOString(), status: 'open', isException: input.isException, unfollowedRules: input.unfollowedRules, exceptionReason: input.exceptionReason
     }
     await createTrade(requireUser(), trade)
     data.value.trades.unshift(trade)
     await saveLocalData(data.value)
   }
 
-  async function closeTrade(input: { checkedExit: string[]; pnl: number; note?: string }) {
+  async function closeTrade(input: { checkedExit: string[]; unfollowedExitRules?: string[]; pnl: number; note?: string }) {
     const existing = openTrade.value
     if (!existing) return
-    const trade: Trade = { ...clone(existing), status: 'closed', exitedAt: new Date().toISOString(), checkedExit: [...input.checkedExit], pnl: input.pnl, note: input.note }
+    const trade: Trade = { ...clone(existing), status: 'closed', exitedAt: new Date().toISOString(), checkedExit: [...input.checkedExit], unfollowedExitRules: input.unfollowedExitRules, pnl: input.pnl, note: input.note }
     await saveTrade(requireUser(), trade)
     const index = data.value.trades.findIndex((item) => item.id === trade.id)
     if (index >= 0) data.value.trades[index] = trade
